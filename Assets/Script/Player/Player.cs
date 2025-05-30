@@ -4,6 +4,8 @@ public class Player : MonoBehaviour
 {
     [SerializeField] protected PlayerInputAction playerInputAction;
 
+
+
     protected virtual void OnEnable()
     {
         playerInputAction.Enable();

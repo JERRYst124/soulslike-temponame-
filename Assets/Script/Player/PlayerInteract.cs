@@ -5,9 +5,15 @@ public class PlayerInteract : Player
 {
     private InputAction IAinteract;
     private InputAction IAmove;
+    private PlayerData playerData;
+    private Vector2 facingOffset;
+
+
     protected override void Awake()
     {
         base.Awake();
+        playerData = GetComponent<PlayerData>();
+        playerData.direction = Vector2.zero;
         IAinteract = playerInputAction.Player.Interact;
         IAmove = playerInputAction.Player.Move;
         IAinteract.performed += Interacting;
@@ -17,10 +23,9 @@ public class PlayerInteract : Player
     {
 
         Vector2 vector2pos = new Vector2(transform.position.x, transform.position.y);
+        Vector2 InteractPos = vector2pos + playerData.direction;
 
-        Vector2 InteractPos = vector2pos + RoundVector(IAmove.ReadValue<Vector2>());
-
-        Debug.Log($"interacts to:{InteractPos.x} {InteractPos.y}");
+        Debug.Log($"interacts to:{InteractPos.x} {InteractPos.y} {vector2pos.x} {vector2pos.y}");
         Collider2D hit = Physics2D.OverlapPoint(InteractPos, LayerMask.GetMask("Object"));
         if (hit != null)
         {
@@ -39,6 +44,6 @@ public class PlayerInteract : Player
     }
     void Update()
     {
-
+        if (playerData.direction != Vector2.zero) { facingOffset = playerData.direction; };
     }
 }

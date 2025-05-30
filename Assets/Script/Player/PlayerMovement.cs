@@ -9,9 +9,11 @@ public class PlayerMovement : Player
     private bool isMoving;
     private Animator animator;
     private InputAction IAmove;
+    private PlayerData playerData;
     protected override void Awake()
     {
         base.Awake();
+        playerData = GetComponent<PlayerData>();
         animator = GetComponent<Animator>();
         isMoving = false;
         IAmove = playerInputAction.Player.Move;
@@ -19,24 +21,24 @@ public class PlayerMovement : Player
     // Update is called once per frame
     void Movement()
     {
-        Vector3 direction = Vector3.zero;
         Vector3 localscale = transform.localScale;
-        direction = IAmove.ReadValue<Vector2>();
-        direction.x = Mathf.RoundToInt(direction.x);
-        direction.y = Mathf.RoundToInt(direction.y);
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) localscale.x = Mathf.RoundToInt(direction.x);
-        transform.localScale = localscale;
-        if (direction != Vector3.zero)
+        playerData.direction = IAmove.ReadValue<Vector2>();
+        playerData.direction = RoundVector(playerData.direction);
+        if (playerData.direction.x != 0) localscale.x = playerData.direction.x;
+        if (playerData.direction != Vector2.zero)
         {
-            Vector3 newtarget = transform.position + direction * tileSize;
-            if (CheckCanMove(newtarget)) StartCoroutine(MoveToTiles(newtarget));
+            transform.localScale = localscale;
+            Vector3 newtarget = transform.position;
+            if (!CheckIsHasBlock(transform.position + new Vector3(playerData.direction.x, 0, 0)))
+                newtarget += new Vector3(playerData.direction.x, 0, 0);
+            if (!CheckIsHasBlock(transform.position + new Vector3(0, playerData.direction.y, 0)))
+                newtarget += new Vector3(0, playerData.direction.y, 0);
+            if (newtarget != transform.position &&
+                !CheckIsHasBlock(newtarget + new Vector3(playerData.direction.x, playerData.direction.y, 0)))
+                StartCoroutine(MoveToTiles(newtarget));
+            else animator.SetBool("IsMoving", isMoving);
         }
-        else
-        {
-            direction = Vector3.zero;
-            animator.SetBool("IsMoving", isMoving);
-        }
-
+        else animator.SetBool("IsMoving", isMoving);
     }
     IEnumerator MoveToTiles(Vector3 NewPos)
     {
@@ -51,16 +53,17 @@ public class PlayerMovement : Player
         isMoving = false;
 
     }
-    private bool CheckCanMove(Vector2 newTarget)
+    private bool CheckIsHasBlock(Vector2 newTarget)
     {
-        Debug.Log(newTarget.x + " " + newTarget.y);
+        Debug.Log("new target: " + newTarget.x + " " + newTarget.y);
+
         Collider2D hit = Physics2D.OverlapPoint(newTarget);
         if (hit != null)
         {
             Debug.Log("hit is: " + hit.name);
-            return false;
+            return true;
         }
-        else return true;
+        else return false;
     }
     void Update()
     {
