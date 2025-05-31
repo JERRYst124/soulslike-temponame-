@@ -28,15 +28,7 @@ public class PlayerMovement : Player
         if (playerData.direction != Vector2.zero)
         {
             transform.localScale = localscale;
-            Vector3 newtarget = transform.position;
-            if (!CheckIsHasBlock(transform.position + new Vector3(playerData.direction.x, 0, 0)))
-                newtarget += new Vector3(playerData.direction.x, 0, 0);
-            if (!CheckIsHasBlock(transform.position + new Vector3(0, playerData.direction.y, 0)))
-                newtarget += new Vector3(0, playerData.direction.y, 0);
-            if (newtarget != transform.position &&
-                !CheckIsHasBlock(newtarget + new Vector3(playerData.direction.x, playerData.direction.y, 0)))
-                StartCoroutine(MoveToTiles(newtarget));
-            else animator.SetBool("IsMoving", isMoving);
+            TryToMove();
         }
         else animator.SetBool("IsMoving", isMoving);
     }
@@ -51,7 +43,23 @@ public class PlayerMovement : Player
         }
         transform.position = NewPos;
         isMoving = false;
+    }
+    private void TryToMove()
+    {
+        Vector3 newtarget = transform.position;
+        Vector3 direction = new Vector3(playerData.direction.x, 0, 0);
+        if (!CheckIsHasBlock(transform.position + direction))
+            newtarget += direction;
 
+        direction = new Vector3(0, playerData.direction.y, 0);
+        if (!CheckIsHasBlock(transform.position + direction))
+            newtarget += direction;
+
+        Vector3 totalDirection = new Vector3(playerData.direction.x, playerData.direction.y, 0);
+        if (newtarget != transform.position && !CheckIsHasBlock(transform.position + totalDirection))
+            StartCoroutine(MoveToTiles(newtarget));
+        else
+            animator.SetBool("IsMoving", isMoving);
     }
     private bool CheckIsHasBlock(Vector2 newTarget)
     {

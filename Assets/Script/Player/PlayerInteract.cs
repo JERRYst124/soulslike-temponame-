@@ -23,9 +23,7 @@ public class PlayerInteract : Player
     {
 
         Vector2 vector2pos = new Vector2(transform.position.x, transform.position.y);
-        Vector2 InteractPos = vector2pos + playerData.direction;
-
-        Debug.Log($"interacts to:{InteractPos.x} {InteractPos.y} {vector2pos.x} {vector2pos.y}");
+        Vector2 InteractPos = vector2pos + facingOffset;
         Collider2D hit = Physics2D.OverlapPoint(InteractPos, LayerMask.GetMask("Object"));
         if (hit != null)
         {
