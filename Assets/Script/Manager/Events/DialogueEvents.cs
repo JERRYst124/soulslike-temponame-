@@ -21,10 +21,23 @@ public class DialogueEvents
         if (onDialogueFinished != null) onDialogueFinished?.Invoke();
     }
 
-    public event Action<string> onDisplayDialogue;
-    public void DisplayDialogue(string dialogue)
+    public event Action<string, string> onDisplayDialogue;
+    public void DisplayDialogue(string actorName, string dialogue)
     {
         if (onDisplayDialogue != null)
-            onDisplayDialogue?.Invoke(dialogue);
+            onDisplayDialogue?.Invoke(actorName, dialogue);
+    }
+
+    public event Action onEnableDialogueInteract;
+    public void EnableDialogueInteract()
+    {
+        if (onEnableDialogueInteract != null)
+            onEnableDialogueInteract?.Invoke();
+    }
+    public event Action onDisableDialogueInteract;
+    public void DisableDialogueInteract()
+    {
+        if (onDisableDialogueInteract != null)
+            onDisableDialogueInteract?.Invoke();
     }
 }

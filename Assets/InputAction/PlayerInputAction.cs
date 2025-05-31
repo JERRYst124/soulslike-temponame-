@@ -115,6 +115,34 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""DialogueInteract"",
+            ""id"": ""d345ebca-8ffd-42b3-9b0b-eefb18eaca80"",
+            ""actions"": [
+                {
+                    ""name"": ""Dialogue"",
+                    ""type"": ""Button"",
+                    ""id"": ""df921c09-1b89-42c4-af96-b1d6bc337269"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""3bbe6cf1-4ea1-47d8-942f-448236a272e4"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dialogue"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -123,11 +151,15 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        // DialogueInteract
+        m_DialogueInteract = asset.FindActionMap("DialogueInteract", throwIfNotFound: true);
+        m_DialogueInteract_Dialogue = m_DialogueInteract.FindAction("Dialogue", throwIfNotFound: true);
     }
 
     ~@PlayerInputAction()
     {
         Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerInputAction.Player.Disable() has not been called.");
+        Debug.Assert(!m_DialogueInteract.enabled, "This will cause a leak and performance issues, PlayerInputAction.DialogueInteract.Disable() has not been called.");
     }
 
     public void Dispose()
@@ -239,9 +271,59 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
         }
     }
     public PlayerActions @Player => new PlayerActions(this);
+
+    // DialogueInteract
+    private readonly InputActionMap m_DialogueInteract;
+    private List<IDialogueInteractActions> m_DialogueInteractActionsCallbackInterfaces = new List<IDialogueInteractActions>();
+    private readonly InputAction m_DialogueInteract_Dialogue;
+    public struct DialogueInteractActions
+    {
+        private @PlayerInputAction m_Wrapper;
+        public DialogueInteractActions(@PlayerInputAction wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Dialogue => m_Wrapper.m_DialogueInteract_Dialogue;
+        public InputActionMap Get() { return m_Wrapper.m_DialogueInteract; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(DialogueInteractActions set) { return set.Get(); }
+        public void AddCallbacks(IDialogueInteractActions instance)
+        {
+            if (instance == null || m_Wrapper.m_DialogueInteractActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_DialogueInteractActionsCallbackInterfaces.Add(instance);
+            @Dialogue.started += instance.OnDialogue;
+            @Dialogue.performed += instance.OnDialogue;
+            @Dialogue.canceled += instance.OnDialogue;
+        }
+
+        private void UnregisterCallbacks(IDialogueInteractActions instance)
+        {
+            @Dialogue.started -= instance.OnDialogue;
+            @Dialogue.performed -= instance.OnDialogue;
+            @Dialogue.canceled -= instance.OnDialogue;
+        }
+
+        public void RemoveCallbacks(IDialogueInteractActions instance)
+        {
+            if (m_Wrapper.m_DialogueInteractActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IDialogueInteractActions instance)
+        {
+            foreach (var item in m_Wrapper.m_DialogueInteractActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_DialogueInteractActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public DialogueInteractActions @DialogueInteract => new DialogueInteractActions(this);
     public interface IPlayerActions
     {
         void OnMove(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
+    }
+    public interface IDialogueInteractActions
+    {
+        void OnDialogue(InputAction.CallbackContext context);
     }
 }

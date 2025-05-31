@@ -17,23 +17,25 @@ public class DialogueManager : Singleton<DialogueManager>
     }
     private void OnEnable()
     {
-        Debug.Log("has add dialogue");
         GameEventsManager.Instance.dialogueEvents.onEnterDialogue += EnterDialogue;
-        InputManager.Instance.playerInputAction.Player.Interact.performed += SubmitPressed;
+        GameEventsManager.Instance.dialogueEvents.onEnableDialogueInteract += EnableDialogueInteract;
+        GameEventsManager.Instance.dialogueEvents.onDisableDialogueInteract += DisableDialogueInteract;
+        InputManager.Instance.playerInputAction.DialogueInteract.Dialogue.performed += SubmitPressed;
     }
     private void OnDisable()
     {
-        InputManager.Instance.playerInputAction.Player.Interact.performed -= SubmitPressed;
+        GameEventsManager.Instance.dialogueEvents.onEnableDialogueInteract -= EnableDialogueInteract;
+        GameEventsManager.Instance.dialogueEvents.onDisableDialogueInteract -= DisableDialogueInteract;
+        InputManager.Instance.playerInputAction.DialogueInteract.Dialogue.performed += SubmitPressed;
         GameEventsManager.Instance.dialogueEvents.onEnterDialogue -= EnterDialogue;
     }
     private void SubmitPressed(InputAction.CallbackContext cxt)
     {
-        Debug.Log("Hi");
         if (!dialoguePlaying)
         {
             return;
         }
-        //  ContinueOrExitStory();
+        ContinueOrExitStory();
     }
     public void EnterDialogue(string knotName)
     {
@@ -45,6 +47,7 @@ public class DialogueManager : Singleton<DialogueManager>
         dialoguePlaying = true;
         GameEventsManager.Instance.playerEvents.FreezingPlayer();
         GameEventsManager.Instance.dialogueEvents.DialogueStarted();
+        GameEventsManager.Instance.dialogueEvents.EnableDialogueInteract();
         if (!knotName.Equals(""))
         {
             story.ChoosePathString(knotName);
@@ -60,9 +63,15 @@ public class DialogueManager : Singleton<DialogueManager>
     {
         if (story.canContinue)
         {
-            string dialogueLine = story.Continue();
-            Debug.Log(dialogueLine);
-            // dialoguePlaying = false;
+            string dialogueLine = story.Continue().Trim();
+            string actorName = "";
+            if (dialogueLine.Contains(":"))
+            {
+                int index = dialogueLine.IndexOf(":");
+                actorName = dialogueLine.Substring(0, index).Trim();
+                dialogueLine = dialogueLine.Substring(index + 1).Trim();
+            }
+            GameEventsManager.Instance.dialogueEvents.DisplayDialogue(actorName, dialogueLine);
         }
         else
         {
@@ -74,7 +83,17 @@ public class DialogueManager : Singleton<DialogueManager>
         Debug.Log("Exit Dialogue");
         GameEventsManager.Instance.dialogueEvents.DialogueFinished();
         GameEventsManager.Instance.playerEvents.unFreezingPlayer();
+        GameEventsManager.Instance.dialogueEvents.DisableDialogueInteract();
         dialoguePlaying = false;
         story.ResetState();
+    }
+
+    private void EnableDialogueInteract()
+    {
+        InputManager.Instance.playerInputAction.DialogueInteract.Enable();
+    }
+    private void DisableDialogueInteract()
+    {
+        InputManager.Instance.playerInputAction.DialogueInteract.Disable();
     }
 }
