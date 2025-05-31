@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerData : Player
+public class PlayerData : MonoBehaviour
 {
     public Vector2 direction;
 }

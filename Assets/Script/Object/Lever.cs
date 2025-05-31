@@ -16,6 +16,7 @@ public class Lever : MonoBehaviour, IIteractable
 
     void IIteractable.Interact()
     {
+        // Debug.Log("interact");
         GameEventsManager.Instance.dialogueEvents.EnterDialogue(knotName);
     }
 }

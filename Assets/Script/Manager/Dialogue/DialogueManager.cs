@@ -1,6 +1,7 @@
 
 using Ink.Runtime;
 using UnityEngine;
+using UnityEngine.InputSystem;
 public class DialogueManager : Singleton<DialogueManager>
 {
     [Header("Ink Story")]
@@ -16,20 +17,34 @@ public class DialogueManager : Singleton<DialogueManager>
     }
     private void OnEnable()
     {
+        Debug.Log("has add dialogue");
         GameEventsManager.Instance.dialogueEvents.onEnterDialogue += EnterDialogue;
+        InputManager.Instance.playerInputAction.Player.Interact.performed += SubmitPressed;
     }
     private void OnDisable()
     {
+        InputManager.Instance.playerInputAction.Player.Interact.performed -= SubmitPressed;
         GameEventsManager.Instance.dialogueEvents.onEnterDialogue -= EnterDialogue;
+    }
+    private void SubmitPressed(InputAction.CallbackContext cxt)
+    {
+        Debug.Log("Hi");
+        if (!dialoguePlaying)
+        {
+            return;
+        }
+        //  ContinueOrExitStory();
     }
     public void EnterDialogue(string knotName)
     {
+        Debug.Log("dialoogue playing");
         if (dialoguePlaying)
         {
             return;
         }
         dialoguePlaying = true;
-
+        GameEventsManager.Instance.playerEvents.FreezingPlayer();
+        GameEventsManager.Instance.dialogueEvents.DialogueStarted();
         if (!knotName.Equals(""))
         {
             story.ChoosePathString(knotName);
@@ -38,6 +53,7 @@ public class DialogueManager : Singleton<DialogueManager>
         {
             Debug.LogWarning("Knot name was the empty string");
         }
+
         ContinueOrExitStory();
     }
     private void ContinueOrExitStory()
@@ -46,6 +62,7 @@ public class DialogueManager : Singleton<DialogueManager>
         {
             string dialogueLine = story.Continue();
             Debug.Log(dialogueLine);
+            // dialoguePlaying = false;
         }
         else
         {
@@ -55,7 +72,9 @@ public class DialogueManager : Singleton<DialogueManager>
     private void ExitDialogue()
     {
         Debug.Log("Exit Dialogue");
-        dialoguePlaying = true;
+        GameEventsManager.Instance.dialogueEvents.DialogueFinished();
+        GameEventsManager.Instance.playerEvents.unFreezingPlayer();
+        dialoguePlaying = false;
         story.ResetState();
     }
 }
