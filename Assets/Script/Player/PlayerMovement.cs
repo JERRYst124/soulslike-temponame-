@@ -30,16 +30,20 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Movement()
     {
-        Vector3 localscale = transform.localScale;
         playerData.direction = IAmove.ReadValue<Vector2>();
+
         playerData.direction = UtilitiesMath.Instance.RoundVector(playerData.direction);
-        if (playerData.direction.x != 0) localscale.x = playerData.direction.x;
         if (playerData.direction != Vector2.zero)
         {
-            transform.localScale = localscale;
             TryToMove();
         }
         else animator.SetBool("IsMoving", isMoving);
+
+        if (playerData.direction.magnitude >= 0.1f || playerData.direction.magnitude <= -0.1f)
+        {
+            animator.SetFloat("X", playerData.direction.x);
+            animator.SetFloat("Y", playerData.direction.y);
+        }
     }
     IEnumerator MoveToTiles(Vector3 NewPos)
     {
@@ -57,6 +61,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 newtarget = transform.position;
         Vector3 direction = new Vector3(playerData.direction.x, 0, 0);
+
         if (!CheckIsHasBlock(transform.position + direction))
             newtarget += direction;
 
@@ -65,6 +70,7 @@ public class PlayerMovement : MonoBehaviour
             newtarget += direction;
 
         Vector3 totalDirection = new Vector3(playerData.direction.x, playerData.direction.y, 0);
+        // Debug.Log(direction + " " + totalDirection);
         if (newtarget != transform.position && !CheckIsHasBlock(transform.position + totalDirection))
             StartCoroutine(MoveToTiles(newtarget));
         else
@@ -74,10 +80,10 @@ public class PlayerMovement : MonoBehaviour
     {
         // Debug.Log("new target: " + newTarget.x + " " + newTarget.y);
 
-        Collider2D hit = Physics2D.OverlapPoint(newTarget);
+        Collider2D hit = Physics2D.OverlapPoint(newTarget, LayerMask.GetMask("Object"));
         if (hit != null)
         {
-            //   Debug.Log("hit is: " + hit.name);
+            //  Debug.Log("hit is: " + hit.name);
             return true;
         }
         else return false;

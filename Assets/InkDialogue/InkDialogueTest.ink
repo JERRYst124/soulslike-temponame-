@@ -15,4 +15,5 @@ tunako: hmm chả có gì đây cả...!!!
 ->END
 ===npc===
 npc: tung tung tung sahur
+tunako: god qua tunako
 -> END

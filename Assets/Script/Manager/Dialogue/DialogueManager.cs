@@ -56,7 +56,6 @@ public class DialogueManager : Singleton<DialogueManager>
         {
             Debug.LogWarning("Knot name was the empty string");
         }
-
         ContinueOrExitStory();
     }
     private void ContinueOrExitStory()
